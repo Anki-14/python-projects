@@ -1,0 +1,77 @@
+import pyttsx3
+import datetime
+import webbrowser
+import wikipedia
+import os
+
+class VoiceAssistant:
+    def __init__(self):
+        self.engine = pyttsx3.init()
+        self.engine.setProperty("rate", 150)  # Setting speaking rate
+        self.engine.setProperty("volume", 0.8)  # Setting volume
+
+    def speak(self, text):
+        self.engine.say(text)
+        self.engine.runAndWait()
+
+    def greet(self):
+        current_time = datetime.datetime.now().hour
+        if 0 <= current_time < 12:
+            self.speak("hello,Good morning!")
+        elif 12 <= current_time < 18:
+            self.speak("hello,Good afternoon!")
+        else:
+            self.speak("hello,Good evening!")
+
+    def open_application(self, app_name):
+        try:
+            os.system(f"start {app_name}.exe")
+        except Exception as e:
+            self.speak("Sorry, I couldn't open the application.")
+
+    def play_youtube(self, song_name):
+        try:
+            webbrowser.open(f"https://www.youtube.com/results?search_query={song_name}")
+        except Exception as e:
+            self.speak("Sorry, I couldn't play the song.")
+
+    def execute_command(self, query):
+        if "hello" in query:
+            self.greet()
+        elif "time" in query:
+            now = datetime.datetime.now().strftime("%I:%M %p")
+            self.speak(f"The current time is {now}")
+        elif "open" in query:
+            app_name = query.split("open ")[-1]
+            self.open_application(app_name)
+        elif "play" in query:
+            song_name = query.split("play ")[-1]
+            self.play_youtube(song_name)
+        elif "search" in query:
+            search_term = query.split("search for ")[-1]
+            webbrowser.open(f"https://www.google.com/search?q={search_term}")
+        elif "wikipedia" in query:
+            search_query = query.split("on ")[-1]
+            try:
+                result = wikipedia.summary(search_query, sentences=2)
+                self.speak(result)
+            except wikipedia.exceptions.DisambiguationError as e:
+                options = e.options[:2]
+                self.speak(f"Multiple results found. Here are the top two: {', '.join(options)}")
+            except wikipedia.exceptions.PageError:
+                self.speak("Sorry, I couldn't find any information on that topic.")
+        elif "exit" in query or "quit" in query:
+            self.speak("Goodbye!")
+            exit()
+        else:
+            self.speak("Sorry, I didn't understand that.")
+
+    def run(self):
+        self.speak("Initializing voice assistant...")
+        while True:
+            query = input("what can i do for you Ankita: ")
+            self.execute_command(query)
+
+if __name__ == "__main__":
+    assistant = VoiceAssistant()
+    assistant.run()
